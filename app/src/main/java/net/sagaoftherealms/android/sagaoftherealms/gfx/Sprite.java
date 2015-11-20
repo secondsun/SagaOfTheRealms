@@ -9,7 +9,12 @@ public class Sprite {
     public int x,y,z;
 
     //facing normal
-    public int normalX,normalY,normalZ;
+    public int normalX = 0;
+    public int normalY = 0;
+    public int normalZ = 1;
+
+    //Degress around the normal to rotate the sprite
+    public float normalTheta = 0;
 
     //velocity
     public int speedX,speedY,speedZ;
@@ -36,6 +41,7 @@ public class Sprite {
         if (speedX != sprite.speedX) return false;
         if (speedY != sprite.speedY) return false;
         if (speedZ != sprite.speedZ) return false;
+        if (normalTheta != sprite.normalTheta) return false;
         return spriteIndex == sprite.spriteIndex;
 
     }
@@ -51,6 +57,7 @@ public class Sprite {
         result = 31 * result + speedX;
         result = 31 * result + speedY;
         result = 31 * result + speedZ;
+        result = 31 * result + (int)normalTheta;
         result = 31 * result + spriteIndex;
         return result;
     }

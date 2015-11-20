@@ -1,12 +1,15 @@
 package net.sagaoftherealms.android.sagaoftherealms;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.Canvas;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import net.sagaoftherealms.android.sagaoftherealms.game.ShipJoypadDelegate;
+import net.sagaoftherealms.android.sagaoftherealms.input.InputManagerCompat;
 
 /**
  * @author impaler
@@ -14,11 +17,13 @@ import android.view.SurfaceView;
  * the image to the screen.
  */
 public class MainGamePanel extends SurfaceView implements
-        SurfaceHolder.Callback {
+        SurfaceHolder.Callback, InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = MainGamePanel.class.getSimpleName();
+    private final ShipJoypadDelegate shipJoypadDelegate;
 
     private MainThread thread;
+    private final InputManagerCompat mInputManager;
 
     public MainGamePanel(Context context) {
         super(context);
@@ -28,8 +33,13 @@ public class MainGamePanel extends SurfaceView implements
         // create the game loop thread
         thread = new MainThread(getHolder(), this);
 
+        shipJoypadDelegate = new ShipJoypadDelegate(thread.eye);
+
         // make the GamePanel focusable so it can handle events
         setFocusable(true);
+
+        mInputManager = InputManagerCompat.Factory.getInputManager(this.getContext());
+        mInputManager.registerInputDeviceListener(this, null);
     }
 
     @Override
@@ -54,6 +64,7 @@ public class MainGamePanel extends SurfaceView implements
         while (retry) {
             try {
                 thread.join();
+                thread.setRunning(false);
                 retry = false;
             } catch (InterruptedException e) {
                 // try again shutting down the thread
@@ -62,22 +73,60 @@ public class MainGamePanel extends SurfaceView implements
         Log.d(TAG, "Thread was shut down cleanly");
     }
 
+
+    /*
+     * When an input device is added, we add a ship based upon the device.
+     * @see
+     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
+     * #onInputDeviceAdded(int)
+     */
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (event.getY() > getHeight() - 50) {
-                thread.setRunning(false);
-                ((Activity)getContext()).finish();
-            } else {
-                Log.d(TAG, "Coords: x=" + event.getX() + ",y=" + event.getY());
-            }
-        }
-        return super.onTouchEvent(event);
+    public void onInputDeviceAdded(int deviceId) {
+        InputDevice dev = InputDevice.getDevice(deviceId);
+        shipJoypadDelegate.setInputDevice(dev);
+
+    }
+
+    /*
+     * This is an unusual case. Input devices don't typically change, but they
+     * certainly can --- for example a device may have different modes. We use
+     * this to make sure that the ship has an up-to-date InputDevice.
+     * @see
+     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
+     * #onInputDeviceChanged(int)
+     */
+    @Override
+    public void onInputDeviceChanged(int deviceId) {
+        shipJoypadDelegate.setInputDevice(InputDevice.getDevice(deviceId));
+    }
+
+    /*
+     * Remove any ship associated with the ID.
+     * @see
+     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
+     * #onInputDeviceRemoved(int)
+     */
+    @Override
+    public void onInputDeviceRemoved(int deviceId) {
+        shipJoypadDelegate.setInputDevice(null);
+        thread.eye.speedX = thread.eye.speedY = thread.eye.speedZ = 0;
+        thread.eye.x = MainThread.halfScreenWidth;
+        thread.eye.y = MainThread.halfScreenWidth;
+        thread.eye.z = 100;
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return shipJoypadDelegate.onKeyDown(keyCode, event);
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        return shipJoypadDelegate.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        return shipJoypadDelegate.onGenericMotionEvent(event);
+    }
 }

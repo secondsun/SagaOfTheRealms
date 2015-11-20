@@ -63,8 +63,8 @@ public class MainThread extends Thread {
 
     private final CompletionService<Sprite> pool = new ExecutorCompletionService<>(threadPool);
     private final Deque<DrawSprite> drawDeque = new ArrayDeque<>(SPRITE_COUNT);
-    private final FillArray fillZBuffer;
     private final FillArray fillPixels;
+    private final FillArray fillZBuffer;
     // Surface holder that can access the physical surface
     private SurfaceHolder surfaceHolder;
     // The actual view that handles inputs
@@ -90,7 +90,6 @@ public class MainThread extends Thread {
 
         rockPixels = new int[64*64];
         BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inDither = true;
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         BitmapFactory.decodeResource(gamePanel.getResources(), R.drawable.rock, options).getPixels(rockPixels, 0, 64, 0, 0, 64, 64);
 
@@ -105,13 +104,12 @@ public class MainThread extends Thread {
         pixels = new int[screenHeight * screenWidth];
         this.fillPixels = new FillArray();
         fillPixels.array = pixels;
-        fillPixels.value = Color.BLACK;
+        fillPixels.value = Color.TRANSPARENT;
+
 
         this.fillZBuffer = new FillArray();
         fillZBuffer.array = zBuffer;
         fillZBuffer.value = 1000;
-
-
 
     }
 
@@ -121,9 +119,9 @@ public class MainThread extends Thread {
         sprite.z = (int) (Math.random() * 1000);
         sprite.x = (int) (Math.random() * screenWidth);
         sprite.y = (int) (Math.random() * screenHeight);
-        sprite.speedX = 0;
-        sprite.speedY = 0;
-        sprite.speedZ = 0;
+        sprite.speedX = (int)(Math.random() * 20) - 10;
+        sprite.speedY = (int)(Math.random() * 20) - 10;
+        sprite.speedZ = (int) (Math.random() * 20) + 1;
         sprite.spriteIndex = rockPixels.hashCode();
         sprite.spriteArray = rockPixels;
         sprites.add(sprite);
@@ -136,14 +134,30 @@ public class MainThread extends Thread {
         while (running) {
             long millis = currentTimeMillis();
             tickCount++;
-            updateGame();
+
+            //Handles input
+            handleInput();
+
+            //Updates game world (IE NPC states and positions)
+            updateGameWorld();
+
+
+
+            //render steps
             clearScreen();
             render();
             swap();
+            eye.normalTheta+=.05;
             Log.d(TAG, String.format("FPS %d", (1000/(currentTimeMillis() - millis))));
 
         }
         Log.d(TAG, "Game loop executed " + tickCount + " times");
+    }
+
+    private void handleInput() {
+        eye.x += eye.speedX;
+        eye.y += eye.speedY;
+        eye.z = 100;//Eye does not move
     }
 
     private void clearScreen() {
@@ -159,7 +173,7 @@ public class MainThread extends Thread {
         }
     }
 
-    private void updateGame() {
+    private void updateGameWorld() {
         for (Sprite sprite : sprites) {
             sprite.x += sprite.speedX;
             sprite.y += sprite.speedY;
@@ -168,9 +182,9 @@ public class MainThread extends Thread {
                 sprite.z = 1;
                 sprite.x = (int) (Math.random() * screenWidth);
                 sprite.y = (int) (Math.random() * screenHeight);
-                sprite.speedX = (int)(Math.random() * 20) - 10;
-                sprite.speedY = (int)(Math.random() * 20) - 10;
-                sprite.speedZ = (int) (Math.random() * 20) + 1;
+                sprite.speedX = (int)(Math.random() * 10) - 5;
+                sprite.speedY = (int)(Math.random() * 10) - 5;
+                sprite.speedZ = (int) (Math.random() * 4) + 1;
                 sprite.spriteArray = rockPixels;
             }
         }
@@ -208,7 +222,9 @@ public class MainThread extends Thread {
 
     private void swap() {
         Canvas canvas = surfaceHolder.getSurface().lockHardwareCanvas();
+        canvas.drawARGB(255, 0, 0, 0);
         back.setPixels(pixels, 0, screenWidth, 0, 0, screenWidth, screenHeight);
+
         canvas.drawBitmap(back, scale, null);
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
     }
