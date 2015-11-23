@@ -11,6 +11,8 @@ import android.view.SurfaceView;
 import net.sagaoftherealms.android.sagaoftherealms.game.CameraJoypadDelegate;
 import net.sagaoftherealms.android.sagaoftherealms.input.InputManagerCompat;
 
+import java.io.IOException;
+
 /**
  * @author impaler
  * This is the main surface that handles the ontouch events and draws
@@ -31,7 +33,12 @@ public class MainGamePanel extends SurfaceView implements
         getHolder().addCallback(this);
 
         // create the game loop thread
-        thread = new MainThread(getHolder(), this);
+        try {
+            thread = new MainThread(getHolder(), this);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
 
         shipJoypadDelegate = new CameraJoypadDelegate(thread.eye, 15);
 

@@ -41,7 +41,7 @@ public class CameraJoypadDelegate implements JoyPadDelegate {
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         int deviceId = event.getDeviceId();
         boolean handled = false;
-        if (deviceId != -1) {
+
             // Handle keys going up.
 
             switch (keyCode) {
@@ -69,7 +69,6 @@ public class CameraJoypadDelegate implements JoyPadDelegate {
                     break;
             }
 
-        }
 
         return handled;
 

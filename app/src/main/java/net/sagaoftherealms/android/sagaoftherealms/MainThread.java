@@ -1,5 +1,6 @@
 package net.sagaoftherealms.android.sagaoftherealms;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,6 +14,7 @@ import net.sagaoftherealms.android.sagaoftherealms.gfx.DrawSprite;
 import net.sagaoftherealms.android.sagaoftherealms.gfx.FillArray;
 import net.sagaoftherealms.android.sagaoftherealms.gfx.Sprite;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -36,8 +38,8 @@ public class MainThread extends Thread {
     private static final String TAG = MainThread.class.getSimpleName();
     private static  final int SPRITE_COUNT = 150;
 
-    public static final int screenWidth = 1920 / 4;
-    public static final int screenHeight = 1080 / 4;
+    public static final int screenWidth = Resources.getSystem().getDisplayMetrics().widthPixels / 4;
+    public static final int screenHeight = Resources.getSystem().getDisplayMetrics().heightPixels / 4;
 
     public static final int halfScreenWidth = screenWidth / 2;
     public static final int halfScreenHeight = screenHeight / 2;
@@ -56,7 +58,7 @@ public class MainThread extends Thread {
         eye.y = halfScreenHeight;
         eye.z = 100;
 
-        scale.setScale(1920 / screenWidth, 1080 / screenHeight);
+        scale.setScale(Resources.getSystem().getDisplayMetrics().widthPixels / screenWidth, Resources.getSystem().getDisplayMetrics().heightPixels / screenHeight);
 
     }
 
@@ -89,18 +91,18 @@ public class MainThread extends Thread {
         this.running = running;
     }
 
-    public MainThread(SurfaceHolder surfaceHolder, MainGamePanel gamePanel) {
+    public MainThread(SurfaceHolder surfaceHolder, MainGamePanel gamePanel) throws IOException {
         super();
         this.surfaceHolder = surfaceHolder;
 
         rockPixels = new int[64*64];
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        BitmapFactory.decodeResource(gamePanel.getResources(), R.drawable.rock, options).getPixels(rockPixels, 0, 64, 0, 0, 64, 64);
+        BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("rock.png"),null,  options).getPixels(rockPixels, 0, 64, 0, 0, 64, 64);
 
         backgroundLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
 
-        BitmapFactory.decodeResource(gamePanel.getResources(), R.drawable.background_1, options).getPixels(backgroundImage , 0, 746, 0, 0, 746, 160);
+        BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("background_1.png"),null,  options).getPixels(backgroundImage , 0, 746, 0, 0, 746, 160);
 
 
         for (int i = 0; i < SPRITE_COUNT; i++) {
