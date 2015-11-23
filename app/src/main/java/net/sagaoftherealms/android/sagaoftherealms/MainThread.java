@@ -8,6 +8,7 @@ import android.graphics.Matrix;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import net.sagaoftherealms.android.sagaoftherealms.gfx.DrawBackground;
 import net.sagaoftherealms.android.sagaoftherealms.gfx.DrawSprite;
 import net.sagaoftherealms.android.sagaoftherealms.gfx.FillArray;
 import net.sagaoftherealms.android.sagaoftherealms.gfx.Sprite;
@@ -63,21 +64,26 @@ public class MainThread extends Thread {
 
     private final CompletionService<Sprite> pool = new ExecutorCompletionService<>(threadPool);
     private final Deque<DrawSprite> drawDeque = new ArrayDeque<>(SPRITE_COUNT);
+
+    private final int[] backgroundImage = new int[746*160];
+    private final int[] backgroundLayerPixels = new int[screenWidth * screenHeight];
+    private final DrawBackground drawBackground = new DrawBackground(backgroundImage, backgroundLayerPixels);
     private final FillArray fillPixels;
     private final FillArray fillZBuffer;
+
+
+
     // Surface holder that can access the physical surface
     private SurfaceHolder surfaceHolder;
-    // The actual view that handles inputs
-    // and draws to the surface
-    private MainGamePanel gamePanel;
 
-    public Bitmap back;
+    public Bitmap backgroundLayer;
+    public Bitmap spritesLayer;
 
     private HashSet<Sprite> sprites = new HashSet<>(SPRITE_COUNT);
     // flag to hold game state
     private boolean running;
     private final int[] zBuffer;
-    private final int[] pixels;
+    private final int[] spriteLayerPixels;
 
     public void setRunning(boolean running) {
         this.running = running;
@@ -86,24 +92,30 @@ public class MainThread extends Thread {
     public MainThread(SurfaceHolder surfaceHolder, MainGamePanel gamePanel) {
         super();
         this.surfaceHolder = surfaceHolder;
-        this.gamePanel = gamePanel;
 
         rockPixels = new int[64*64];
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         BitmapFactory.decodeResource(gamePanel.getResources(), R.drawable.rock, options).getPixels(rockPixels, 0, 64, 0, 0, 64, 64);
 
+        backgroundLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
+
+        BitmapFactory.decodeResource(gamePanel.getResources(), R.drawable.background_1, options).getPixels(backgroundImage , 0, 746, 0, 0, 746, 160);
+
+
         for (int i = 0; i < SPRITE_COUNT; i++) {
             createSprite(i);
             drawDeque.push(new DrawSprite());
         }
 
-        back = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
+
+        spritesLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
 
         zBuffer = new int[screenWidth * screenHeight];
-        pixels = new int[screenHeight * screenWidth];
+        spriteLayerPixels = new int[screenHeight * screenWidth];
+
         this.fillPixels = new FillArray();
-        fillPixels.array = pixels;
+        fillPixels.array = spriteLayerPixels;
         fillPixels.value = Color.TRANSPARENT;
 
 
@@ -116,12 +128,12 @@ public class MainThread extends Thread {
 
     private void createSprite(int i) {
         Sprite sprite = new Sprite();
-        sprite.z = (int) (Math.random() * 1000);
+        sprite.z = 800;
         sprite.x = (int) (Math.random() * screenWidth);
         sprite.y = (int) (Math.random() * screenHeight);
         sprite.speedX = (int)(Math.random() * 20) - 10;
         sprite.speedY = (int)(Math.random() * 20) - 10;
-        sprite.speedZ = (int) (Math.random() * 20) + 1;
+        sprite.speedZ = -15;
         sprite.spriteIndex = rockPixels.hashCode();
         sprite.spriteArray = rockPixels;
         sprites.add(sprite);
@@ -155,8 +167,8 @@ public class MainThread extends Thread {
     }
 
     private void handleInput() {
-        eye.x += eye.speedX;
-        eye.y += eye.speedY;
+        eye.x += ((eye.x + eye.speedX) > 0 && (eye.x + eye.speedX) < halfScreenWidth * 2) ? eye.speedX : 0;
+        eye.y += ((eye.y + eye.speedY) > 0 && (eye.y + eye.speedY) < halfScreenHeight * 2) ? eye.speedY : 0;
         eye.z = 100;//Eye does not move
     }
 
@@ -178,14 +190,13 @@ public class MainThread extends Thread {
             sprite.x += sprite.speedX;
             sprite.y += sprite.speedY;
             sprite.z += sprite.speedZ;
-            if (sprite.z > 1000) {
-                sprite.z = 1;
+            if (sprite.z < 50) {
+                sprite.z = 300;
                 sprite.x = (int) (Math.random() * screenWidth);
-                sprite.y = (int) (Math.random() * screenHeight);
-                sprite.speedX = (int)(Math.random() * 10) - 5;
-                sprite.speedY = (int)(Math.random() * 10) - 5;
-                sprite.speedZ = (int) (Math.random() * 4) + 1;
-                sprite.spriteArray = rockPixels;
+                sprite.y = -1000;
+                sprite.speedX = (int)(Math.random() * 20) - 10;
+                sprite.speedY = (int)(Math.random() * 50) - 10;
+                sprite.speedZ = -1;
             }
         }
     }
@@ -200,12 +211,12 @@ public class MainThread extends Thread {
             DrawSprite draw = drawDeque.pop();
             draw.zBuffer = zBuffer;
             draw.sprite = P;
-            draw.pixels = pixels;
+            draw.pixels = spriteLayerPixels;
             pool.submit(draw);
             drawDeque.addLast(draw);
 
         }
-
+        pool.submit(drawBackground);
         for (Sprite P : sprites) {
 
             try {
@@ -217,15 +228,24 @@ public class MainThread extends Thread {
             }
 
         }
+        try {
+            pool.take().get();//take background
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
     }
 
     private void swap() {
         Canvas canvas = surfaceHolder.getSurface().lockHardwareCanvas();
         canvas.drawARGB(255, 0, 0, 0);
-        back.setPixels(pixels, 0, screenWidth, 0, 0, screenWidth, screenHeight);
 
-        canvas.drawBitmap(back, scale, null);
+        backgroundLayer.setPixels(backgroundLayerPixels, 0, screenWidth, 0, 0, screenWidth, screenHeight);
+        canvas.drawBitmap(backgroundLayer, scale, null);
+        spritesLayer.setPixels(spriteLayerPixels, 0, screenWidth, 0, 0, screenWidth, screenHeight);
+        canvas.drawBitmap(spritesLayer, scale, null);
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
     }
 

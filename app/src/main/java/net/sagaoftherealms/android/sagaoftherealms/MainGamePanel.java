@@ -8,7 +8,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import net.sagaoftherealms.android.sagaoftherealms.game.ShipJoypadDelegate;
+import net.sagaoftherealms.android.sagaoftherealms.game.CameraJoypadDelegate;
 import net.sagaoftherealms.android.sagaoftherealms.input.InputManagerCompat;
 
 /**
@@ -20,7 +20,7 @@ public class MainGamePanel extends SurfaceView implements
         SurfaceHolder.Callback, InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = MainGamePanel.class.getSimpleName();
-    private final ShipJoypadDelegate shipJoypadDelegate;
+    private final CameraJoypadDelegate shipJoypadDelegate;
 
     private MainThread thread;
     private final InputManagerCompat mInputManager;
@@ -33,7 +33,7 @@ public class MainGamePanel extends SurfaceView implements
         // create the game loop thread
         thread = new MainThread(getHolder(), this);
 
-        shipJoypadDelegate = new ShipJoypadDelegate(thread.eye);
+        shipJoypadDelegate = new CameraJoypadDelegate(thread.eye, 15);
 
         // make the GamePanel focusable so it can handle events
         setFocusable(true);

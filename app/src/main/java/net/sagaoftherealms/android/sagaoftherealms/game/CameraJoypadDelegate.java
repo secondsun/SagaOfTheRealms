@@ -10,28 +10,31 @@ import android.view.MotionEvent;
 
 import net.sagaoftherealms.android.sagaoftherealms.gfx.Sprite;
 import net.sagaoftherealms.android.sagaoftherealms.input.JoyPadDelegate;
-import net.sagaoftherealms.android.sagaoftherealms.input.JoypadUtils;
 
-import static java.lang.Math.ceil;
 import static net.sagaoftherealms.android.sagaoftherealms.input.JoypadUtils.getCenteredAxis;
 
 /**
- * Created by summers on 11/21/15.
+ * This class moves the camera behind the screen providing basic perspective transformations.
+ *
+ *
  */
-public class ShipJoypadDelegate implements JoyPadDelegate {
+public class CameraJoypadDelegate implements JoyPadDelegate {
 
     private static final int DPAD_STATE_LEFT = 1 << 0;
     private static final int DPAD_STATE_RIGHT = 1 << 1;
     private static final int DPAD_STATE_UP = 1 << 2;
     private static final int DPAD_STATE_DOWN = 1 << 3;
 
-    private final Sprite ship;
+    private final Sprite camera;
 
     private int mDPadState;
+
+    private final int maxAcceleration;
     private InputDevice mInputDevice;
 
-    public ShipJoypadDelegate(Sprite ship) {
-        this.ship = ship;
+    public CameraJoypadDelegate(Sprite camera, int maxAcceleration) {
+        this.camera = camera;
+        this.maxAcceleration = maxAcceleration;
     }
 
 
@@ -43,22 +46,22 @@ public class ShipJoypadDelegate implements JoyPadDelegate {
 
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_LEFT:
-                    ship.speedX = 0;
+                    camera.speedX = 0;
                     mDPadState &= ~DPAD_STATE_LEFT;
                     handled = true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    ship.speedX = 0;
+                    camera.speedX = 0;
                     mDPadState &= ~DPAD_STATE_RIGHT;
                     handled = true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_UP:
-                    ship.speedY = 0;
+                    camera.speedY = 0;
                     mDPadState &= ~DPAD_STATE_UP;
                     handled = true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    ship.speedY = 0;
+                    camera.speedY = 0;
                     mDPadState &= ~DPAD_STATE_DOWN;
                     handled = true;
                     break;
@@ -79,22 +82,22 @@ public class ShipJoypadDelegate implements JoyPadDelegate {
         if (event.getRepeatCount() == 0) {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_LEFT:
-                    ship.speedX = (-1);
+                    camera.speedX = (-maxAcceleration);
                     mDPadState |= DPAD_STATE_LEFT;
                     handled = true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    ship.speedX = (1);
+                    camera.speedX = (maxAcceleration);
                     mDPadState |= DPAD_STATE_RIGHT;
                     handled = true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_UP:
-                    ship.speedX = (-1);
+                    camera.speedX = (-maxAcceleration);
                     mDPadState |= DPAD_STATE_UP;
                     handled = true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    ship.speedX = (1);
+                    camera.speedX = (maxAcceleration);
                     mDPadState |= DPAD_STATE_DOWN;
                     handled = true;
                     break;
@@ -107,7 +110,7 @@ public class ShipJoypadDelegate implements JoyPadDelegate {
 
 
     /**
-     * The ship directly handles joystick input.
+     * The camera directly handles joystick input.
      *
      * @param event
      * @param historyPos
@@ -139,9 +142,9 @@ public class ShipJoypadDelegate implements JoyPadDelegate {
             y = getCenteredAxis(event, mInputDevice, MotionEvent.AXIS_RZ, historyPos);
         }
 
-        // Set the ship heading.
-        ship.speedX = (int) ceil(x);
-        ship.speedY = (int) ceil(y);
+        // Set the camera heading.
+        camera.speedX = x < 0 ? -maxAcceleration : x == 0 ? 0 : maxAcceleration;
+        camera.speedY = y < 0 ? -maxAcceleration : y == 0 ? 0 : maxAcceleration;
 
     }
 
@@ -160,9 +163,9 @@ public class ShipJoypadDelegate implements JoyPadDelegate {
     }
 
     /**
-     * Set the game controller to be used to control the ship.
+     * Set the game controller to be used to control the camera.
      *
-     * @param dev the input device that will be controlling the ship
+     * @param dev the input device that will be controlling the camera
      */
     public void setInputDevice(InputDevice dev) {
         mInputDevice = dev;
