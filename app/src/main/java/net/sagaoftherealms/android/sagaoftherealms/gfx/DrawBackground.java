@@ -2,7 +2,9 @@ package net.sagaoftherealms.android.sagaoftherealms.gfx;
 
 import java.util.concurrent.Callable;
 
+import static java.lang.Math.min;
 import static net.sagaoftherealms.android.sagaoftherealms.MainThread.eye;
+import static net.sagaoftherealms.android.sagaoftherealms.MainThread.screenHeight;
 import static net.sagaoftherealms.android.sagaoftherealms.MainThread.screenWidth;
 
 /**
@@ -41,7 +43,7 @@ public class DrawBackground implements Callable<Sprite> {
 
 
         for (int x = 0; x < screenWidth; x++) {
-            for (int y = 0; y < bottom; y++) {
+            for (int y = 0; y < min(bottom, screenHeight); y++) {
                 int xIndex = x + left;
                 if (xIndex < 0 || xIndex >= BACKGROUND_WIDTH) {
                     xIndex = 2 * BACKGROUND_WIDTH - xIndex - 1;

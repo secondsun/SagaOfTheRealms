@@ -91,12 +91,12 @@ public class CameraJoypadDelegate implements JoyPadDelegate {
                     handled = true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_UP:
-                    camera.speedX = (-maxAcceleration);
+                    camera.speedY = (-maxAcceleration);
                     mDPadState |= DPAD_STATE_UP;
                     handled = true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    camera.speedX = (maxAcceleration);
+                    camera.speedY = (maxAcceleration);
                     mDPadState |= DPAD_STATE_DOWN;
                     handled = true;
                     break;
