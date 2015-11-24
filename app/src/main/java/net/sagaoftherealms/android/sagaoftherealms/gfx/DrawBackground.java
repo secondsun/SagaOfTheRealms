@@ -30,7 +30,7 @@ public class DrawBackground implements Callable<Sprite> {
         int left = eye.x;
         int right = left + screenWidth;
         int top = 0;
-        int bottom = 160;
+        int bottom = 320;
 
         int width = right - left;
         int height = bottom - top;

@@ -68,7 +68,7 @@ public class MainThread extends Thread {
     private final CompletionService<Sprite> pool = new ExecutorCompletionService<>(threadPool);
     private final Deque<DrawSprite> drawDeque = new ArrayDeque<>(SPRITE_COUNT);
 
-    private final int[] backgroundImage = new int[746*160];
+    private final int[] backgroundImage = new int[746*320];
     private final int[] backgroundLayerPixels = new int[screenWidth * screenHeight];
 
     private final int[] groundImage = new int[256*256];
@@ -110,7 +110,7 @@ public class MainThread extends Thread {
         backgroundLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
         groundLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
 
-        BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("background_1.png"),null,  options).getPixels(backgroundImage , 0, 746, 0, 0, 746, 160);
+        BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("background_1.png"),null,  options).getPixels(backgroundImage , 0, 746, 0, 0, 746, 320);
         BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("ground_1.png"),null,  options).getPixels(groundImage , 0, 256, 0, 0, 256, 256);
 
 
