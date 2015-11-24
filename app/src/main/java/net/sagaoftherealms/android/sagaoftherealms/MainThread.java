@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 
 import net.sagaoftherealms.android.sagaoftherealms.gfx.DrawBackground;
+import net.sagaoftherealms.android.sagaoftherealms.gfx.DrawGround;
 import net.sagaoftherealms.android.sagaoftherealms.gfx.DrawSprite;
 import net.sagaoftherealms.android.sagaoftherealms.gfx.FillArray;
 import net.sagaoftherealms.android.sagaoftherealms.gfx.Sprite;
@@ -69,7 +70,12 @@ public class MainThread extends Thread {
 
     private final int[] backgroundImage = new int[746*160];
     private final int[] backgroundLayerPixels = new int[screenWidth * screenHeight];
+
+    private final int[] groundImage = new int[256*256];
+    private final int[] groundLayerPixels = new int[screenWidth * screenHeight];
+
     private final DrawBackground drawBackground = new DrawBackground(backgroundImage, backgroundLayerPixels);
+    private final DrawGround drawGround = new DrawGround(groundImage, groundLayerPixels);
     private final FillArray fillPixels;
     private final FillArray fillZBuffer;
 
@@ -79,6 +85,7 @@ public class MainThread extends Thread {
     private SurfaceHolder surfaceHolder;
 
     public Bitmap backgroundLayer;
+    public Bitmap groundLayer;
     public Bitmap spritesLayer;
 
     private HashSet<Sprite> sprites = new HashSet<>(SPRITE_COUNT);
@@ -101,8 +108,10 @@ public class MainThread extends Thread {
         BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("rock.png"),null,  options).getPixels(rockPixels, 0, 64, 0, 0, 64, 64);
 
         backgroundLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
+        groundLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
 
         BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("background_1.png"),null,  options).getPixels(backgroundImage , 0, 746, 0, 0, 746, 160);
+        BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("ground_1.png"),null,  options).getPixels(groundImage , 0, 256, 0, 0, 256, 256);
 
 
         for (int i = 0; i < SPRITE_COUNT; i++) {
@@ -219,6 +228,7 @@ public class MainThread extends Thread {
 
         }
         pool.submit(drawBackground);
+        pool.submit(drawGround);
         for (Sprite P : sprites) {
 
             try {
@@ -232,6 +242,7 @@ public class MainThread extends Thread {
         }
         try {
             pool.take().get();//take background
+            pool.take().get();//take ground
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -246,6 +257,8 @@ public class MainThread extends Thread {
 
         backgroundLayer.setPixels(backgroundLayerPixels, 0, screenWidth, 0, 0, screenWidth, screenHeight);
         canvas.drawBitmap(backgroundLayer, scale, null);
+        groundLayer.setPixels(groundLayerPixels, 0, screenWidth, 0, 0, screenWidth, screenHeight);
+        canvas.drawBitmap(groundLayer, scale, null);
         spritesLayer.setPixels(spriteLayerPixels, 0, screenWidth, 0, 0, screenWidth, screenHeight);
         canvas.drawBitmap(spritesLayer, scale, null);
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
