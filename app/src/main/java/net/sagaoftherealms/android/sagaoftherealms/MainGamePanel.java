@@ -19,13 +19,12 @@ import java.io.IOException;
  * the image to the screen.
  */
 public class MainGamePanel extends SurfaceView implements
-        SurfaceHolder.Callback, InputManagerCompat.InputDeviceListener {
+        SurfaceHolder.Callback {
 
     private static final String TAG = MainGamePanel.class.getSimpleName();
-    private final CameraJoypadDelegate shipJoypadDelegate;
+
 
     private MainThread thread;
-    private final InputManagerCompat mInputManager;
 
     public MainGamePanel(Context context) {
         super(context);
@@ -40,13 +39,9 @@ public class MainGamePanel extends SurfaceView implements
             throw new RuntimeException(e);
         }
 
-        shipJoypadDelegate = new CameraJoypadDelegate(thread.eye, 15);
-
         // make the GamePanel focusable so it can handle events
         setFocusable(true);
 
-        mInputManager = InputManagerCompat.Factory.getInputManager(this.getContext());
-        mInputManager.registerInputDeviceListener(this, null);
     }
 
     @Override
@@ -81,59 +76,19 @@ public class MainGamePanel extends SurfaceView implements
     }
 
 
-    /*
-     * When an input device is added, we add a ship based upon the device.
-     * @see
-     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
-     * #onInputDeviceAdded(int)
-     */
-    @Override
-    public void onInputDeviceAdded(int deviceId) {
-        InputDevice dev = InputDevice.getDevice(deviceId);
-        shipJoypadDelegate.setInputDevice(dev);
-
-    }
-
-    /*
-     * This is an unusual case. Input devices don't typically change, but they
-     * certainly can --- for example a device may have different modes. We use
-     * this to make sure that the ship has an up-to-date InputDevice.
-     * @see
-     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
-     * #onInputDeviceChanged(int)
-     */
-    @Override
-    public void onInputDeviceChanged(int deviceId) {
-        shipJoypadDelegate.setInputDevice(InputDevice.getDevice(deviceId));
-    }
-
-    /*
-     * Remove any ship associated with the ID.
-     * @see
-     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
-     * #onInputDeviceRemoved(int)
-     */
-    @Override
-    public void onInputDeviceRemoved(int deviceId) {
-        shipJoypadDelegate.setInputDevice(null);
-        thread.eye.speedX = thread.eye.speedY = thread.eye.speedZ = 0;
-        thread.eye.x = MainThread.halfScreenWidth;
-        thread.eye.y = MainThread.halfScreenWidth;
-        thread.eye.z = 100;
-    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        return shipJoypadDelegate.onKeyDown(keyCode, event);
+        return thread.onKeyDown(keyCode, event);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        return shipJoypadDelegate.onKeyUp(keyCode, event);
+        return thread.onKeyUp(keyCode, event);
     }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
-        return shipJoypadDelegate.onGenericMotionEvent(event);
+        return thread.onGenericMotionEvent(event);
     }
 }

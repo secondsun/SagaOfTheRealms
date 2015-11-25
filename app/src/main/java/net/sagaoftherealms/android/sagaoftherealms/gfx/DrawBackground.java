@@ -3,7 +3,6 @@ package net.sagaoftherealms.android.sagaoftherealms.gfx;
 import java.util.concurrent.Callable;
 
 import static java.lang.Math.min;
-import static net.sagaoftherealms.android.sagaoftherealms.MainThread.eye;
 import static net.sagaoftherealms.android.sagaoftherealms.MainThread.screenHeight;
 import static net.sagaoftherealms.android.sagaoftherealms.MainThread.screenWidth;
 
@@ -19,10 +18,12 @@ public class DrawBackground implements Callable<Sprite> {
 
     public final int[] backgroundImage;
     public final int[] backgroundScreen;
+    private final Sprite eye;
 
-    public DrawBackground(int[] pixels, int[] backgroundScreen) {
+    public DrawBackground(int[] pixels, int[] backgroundScreen, Sprite eye) {
         this.backgroundImage = pixels;
         this.backgroundScreen = backgroundScreen;
+        this.eye = eye;
     }
 
 

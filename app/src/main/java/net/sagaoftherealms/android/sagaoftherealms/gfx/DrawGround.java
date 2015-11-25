@@ -5,9 +5,6 @@ import android.util.Log;
 import java.util.concurrent.Callable;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.sin;
-import static net.sagaoftherealms.android.sagaoftherealms.MainThread.eye;
-import static net.sagaoftherealms.android.sagaoftherealms.MainThread.halfScreenWidth;
 import static net.sagaoftherealms.android.sagaoftherealms.MainThread.screenHeight;
 import static net.sagaoftherealms.android.sagaoftherealms.MainThread.screenWidth;
 
@@ -22,10 +19,14 @@ public class DrawGround implements Callable<Sprite> {
     public final int[] groundScreen;
 
     private int scrollOffset = 0;
+    private final int halfScreenWidth;
+    private final Sprite eye;
 
-    public DrawGround(int[] pixels, int[] backgroundScreen) {
+    public DrawGround(int[] pixels, int[] backgroundScreen, int halfScreenWidth, Sprite eye) {
         this.backgroundImage = pixels;
         this.groundScreen = backgroundScreen;
+        this.halfScreenWidth = halfScreenWidth;
+        this.eye = eye;
     }
 
 

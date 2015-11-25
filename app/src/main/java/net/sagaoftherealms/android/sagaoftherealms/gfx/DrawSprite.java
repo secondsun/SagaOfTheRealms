@@ -19,6 +19,13 @@ public class DrawSprite implements Callable<Sprite> {
 
     public int[] pixels;
     public int[] zBuffer;
+    private final int spriteHalf;
+    private final Sprite eye;
+
+    public DrawSprite(int spriteHalf, Sprite eye) {
+        this.spriteHalf = spriteHalf;
+        this.eye = eye;
+    }
 
     @Override
     public Sprite call() {
@@ -40,7 +47,7 @@ public class DrawSprite implements Callable<Sprite> {
             return null;
         }
 
-        int spriteSide = MainThread.spriteHalf * 2;
+        int spriteSide = spriteHalf * 2;
         int scaleRatio_x = ((spriteSide<<16)/(width)) +1;
         int scaleRatio_y = ((spriteSide<<16)/(height)) +1;
 
