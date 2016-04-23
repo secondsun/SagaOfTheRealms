@@ -35,13 +35,23 @@ public interface Scene {
 
 
     /**
-     * Returns a list of all bitmaps to be drawn to the screen in order.
+     * Returns a list of all bitmaps to be drawn to the screen in order back to front.
      *
      */
     List<Bitmap> render();
 
 
-    JoyPadDelegate attachJoypadDelegate(JoyPadDelegate delegate);
+    /**
+     * Creates the joypad delegate, should be called in the constructor.
+     * @return a new joypad delegate for the scene
+     */
+    JoyPadDelegate createJoypadDelegate();
 
 
+    /**
+     * Use this method to get a reference to the joypad delegate
+     *
+     * @return the current joypad delegate
+     */
+    JoyPadDelegate getJoypadDelegate();
 }

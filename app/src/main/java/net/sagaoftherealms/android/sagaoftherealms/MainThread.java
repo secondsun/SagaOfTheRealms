@@ -11,6 +11,7 @@ import android.view.SurfaceHolder;
 
 import net.sagaoftherealms.android.sagaoftherealms.game.CityDemo;
 import net.sagaoftherealms.android.sagaoftherealms.game.Scene;
+import net.sagaoftherealms.android.sagaoftherealms.game.StrategyMapScene;
 import net.sagaoftherealms.android.sagaoftherealms.input.JoyPadDelegate;
 
 import java.io.IOException;
@@ -54,7 +55,7 @@ public class MainThread extends Thread {
     public MainThread(SurfaceHolder surfaceHolder, MainGamePanel gamePanel) throws IOException {
         super();
         this.surfaceHolder = surfaceHolder;
-        this.scene = new CityDemo(surfaceHolder, gamePanel);
+        this.scene = new StrategyMapScene(surfaceHolder, gamePanel);
 
     }
 
@@ -66,7 +67,7 @@ public class MainThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.delegate = scene.attachJoypadDelegate(null);
+        this.delegate = scene.getJoypadDelegate();
         long tickCount = 0L;
         Log.d(TAG, "Starting game loop");
         while (running) {

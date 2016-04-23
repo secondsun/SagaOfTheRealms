@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class WarpTunnelDemo implements Scene,  InputManagerCompat.InputDeviceListener {
+public class WarpTunnelDemo extends AbstractScene {
 
     private final ExecutorService threadPool = Executors.newFixedThreadPool(4);
 
@@ -59,27 +59,21 @@ public class WarpTunnelDemo implements Scene,  InputManagerCompat.InputDeviceLis
     private FillArray fillPixels;
     private FillArray fillZBuffer;
 
-    private final SurfaceHolder surfaceHolder;
-    private final MainGamePanel gamePanel;
     private int[] rockPixels;
     private Bitmap backgroundLayer;
     private Bitmap spritesLayer;
     private int[] zBuffer;
     private int[] spriteLayerPixels;
-    private CameraJoypadDelegate shipJoypadDelegate;
-    private InputManagerCompat mInputManager;
 
     public WarpTunnelDemo(SurfaceHolder surfaceHolder, MainGamePanel gamePanel) throws IOException
     {
-        this.surfaceHolder = surfaceHolder;
-        this.gamePanel = gamePanel;
+        super(surfaceHolder, gamePanel);
     }
 
     @Override
     public void setup() throws IOException {
 
-        mInputManager = InputManagerCompat.Factory.getInputManager(gamePanel.getContext());
-        mInputManager.registerInputDeviceListener(this, new Handler(Looper.getMainLooper()));
+        super.setup();
 
         rockPixels = new int[64*64];
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -88,8 +82,6 @@ public class WarpTunnelDemo implements Scene,  InputManagerCompat.InputDeviceLis
 
         backgroundLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
         BitmapFactory.decodeStream(gamePanel.getResources().getAssets().open("background_1.png"),null,  options).getPixels(backgroundImage , 0, 746, 0, 0, 746, 320);
-
-
 
         spritesLayer = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
 
@@ -112,7 +104,7 @@ public class WarpTunnelDemo implements Scene,  InputManagerCompat.InputDeviceLis
         threadPool.shutdown();
         backgroundLayer.recycle();
         spritesLayer.recycle();
-        mInputManager.unregisterInputDeviceListener(this);
+        super.teardown();
     }
 
     @Override
@@ -165,35 +157,8 @@ public class WarpTunnelDemo implements Scene,  InputManagerCompat.InputDeviceLis
     }
 
     @Override
-    public JoyPadDelegate attachJoypadDelegate(JoyPadDelegate delegate) {
-        shipJoypadDelegate = new CameraJoypadDelegate(eye, 15);
-        return shipJoypadDelegate;
-    }
-
-    /*
-         * When an input device is added, we add a ship based upon the device.
-         * @see
-         * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
-         * #onInputDeviceAdded(int)
-         */
-    @Override
-    public void onInputDeviceAdded(int deviceId) {
-        InputDevice dev = InputDevice.getDevice(deviceId);
-        shipJoypadDelegate.setInputDevice(dev);
-
-    }
-
-    /*
-     * This is an unusual case. Input devices don't typically change, but they
-     * certainly can --- for example a device may have different modes. We use
-     * this to make sure that the ship has an up-to-date InputDevice.
-     * @see
-     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
-     * #onInputDeviceChanged(int)
-     */
-    @Override
-    public void onInputDeviceChanged(int deviceId) {
-        shipJoypadDelegate.setInputDevice(InputDevice.getDevice(deviceId));
+    public JoyPadDelegate createJoypadDelegate() {
+        return new CameraJoypadDelegate(eye, 15);
     }
 
     /*
@@ -204,7 +169,7 @@ public class WarpTunnelDemo implements Scene,  InputManagerCompat.InputDeviceLis
      */
     @Override
     public void onInputDeviceRemoved(int deviceId) {
-        shipJoypadDelegate.setInputDevice(null);
+        super.onInputDeviceRemoved(deviceId);
         eye.speedX = eye.speedY = eye.speedZ = 0;
         eye.x = halfScreenWidth;
         eye.y = halfScreenWidth;
