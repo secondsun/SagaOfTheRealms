@@ -55,7 +55,7 @@ public class MainThread extends Thread {
     public MainThread(SurfaceHolder surfaceHolder, MainGamePanel gamePanel) throws IOException {
         super();
         this.surfaceHolder = surfaceHolder;
-        this.scene = new StrategyMapScene(surfaceHolder, gamePanel);
+        this.scene = new CityDemo(surfaceHolder, gamePanel);
 
     }
 
